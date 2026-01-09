@@ -25,7 +25,7 @@ p# Software Requirements Specification (SRS)
 6. [Appendix A: Use Case Diagrams](#appendix-a-use-case-diagrams)
 7. [Appendix B: Entity Relationship Diagrams](#appendix-b-entity-relationship-diagrams)
 
----
+
 
 ## 1. Introduction
 

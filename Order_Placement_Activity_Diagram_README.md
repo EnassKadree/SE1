@@ -77,3 +77,4 @@ This diagram implements:
 - **FR-CA-009**: Cart Review Page
 - **FR-AD-011**: Automatic Inventory Updates
 
+
