@@ -1,0 +1,152 @@
+@startuml Order Placement Process
+!theme plain
+skinparam activity {
+    BackgroundColor #E1F5FE
+    BorderColor #01579B
+    FontSize 12
+    FontColor #000000
+}
+skinparam activityDiamond {
+    BackgroundColor #FFF9C4
+    BorderColor #F57F17
+}
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #F9A825
+}
+
+title Order Placement Process - Activity Diagram
+
+start
+
+:User accesses shopping cart;
+
+if (User authenticated?) then (No)
+    :Redirect to authentication screen;
+    :User authenticates via phone + OTP;
+    if (Authentication successful?) then (No)
+        :Show authentication error;
+        stop
+    endif
+endif
+
+:Display cart contents;
+
+if (Cart is empty?) then (Yes)
+    :Show "Cart is empty" message;
+    :Redirect to product catalog;
+    stop
+endif
+
+:Calculate cart total;
+:Display order summary;
+
+partition "Order Review & Validation" {
+    :User reviews order summary;
+    
+    :System checks inventory availability\nfor all cart items;
+    
+    if (All items in stock?) then (No)
+        :Identify out-of-stock items;
+        :Show error message with\nout-of-stock items;
+        :Remove out-of-stock items\nor update quantities;
+        if (Cart becomes empty?) then (Yes)
+            :Show "Cart is empty" message;
+            stop
+        endif
+        :Recalculate cart total;
+        :Display updated order summary;
+    endif
+    
+    :User confirms delivery address;
+    
+    :System auto-detects province\nusing GPS;
+    
+    if (Province detected?) then (No)
+        :User manually selects province;
+    endif
+    
+    :System calculates delivery fees\nbased on province;
+    :Display final total including delivery;
+    
+    :User confirms order details;
+}
+
+partition "Payment Information" {
+    :User enters payment information;
+    
+    :System validates payment information;
+    
+    if (Payment info valid?) then (No)
+        :Show validation error;
+        :User corrects payment information;
+        :System validates payment information;
+        if (Payment info valid?) then (No)
+            :Show error: Invalid payment information;
+            stop
+        endif
+    endif
+}
+
+partition "OTP Verification" {
+    :System generates OTP;
+    :System sends OTP via SMS\nto registered phone number;
+    :Start OTP timer (5 minutes);
+    
+    :User enters OTP;
+    
+    :System validates OTP;
+    
+    if (OTP valid?) then (No)
+        if (OTP expired?) then (Yes)
+            :Show error: OTP expired;
+            :System generates new OTP;
+            :System sends new OTP via SMS;
+            :User enters new OTP;
+            :System validates OTP;
+            if (OTP valid?) then (No)
+                :Show error: Invalid OTP;
+                :Allow retry (max 3 attempts);
+                if (Max attempts reached?) then (Yes)
+                    :Show error: Maximum attempts exceeded;
+                    :Cancel order process;
+                    stop
+                else (No)
+                    :User enters OTP again;
+                    :System validates OTP;
+                endif
+            endif
+        else (No - Invalid OTP)
+            :Show error: Invalid OTP;
+            :Increment failed attempt counter;
+            if (Max attempts reached?) then (Yes)
+                :Show error: Maximum attempts exceeded;
+                :Cancel order process;
+                stop
+            else (No)
+                :User enters OTP again;
+                :System validates OTP;
+                if (OTP valid?) then (No)
+                    :Show error: Invalid OTP;
+                    stop
+                endif
+            endif
+        endif
+    endif
+}
+
+partition "Order Creation" {
+    :System creates order with status "Pending";
+    :System decrements inventory\nfor all ordered items;
+    :System generates order confirmation number;
+    :System sends order confirmation\nvia SMS and email;
+    :Display order confirmation page;
+    :Clear shopping cart;
+}
+
+:Order placed successfully;
+
+stop
+
+@enduml
+
